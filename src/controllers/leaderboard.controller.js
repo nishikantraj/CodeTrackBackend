@@ -38,12 +38,22 @@ const getLeaderboard = async (req, res) => {
         const now = new Date();
         const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
+        // Fetch all activity logs
         const activityLogs = await ActivityLog.find({});
-        
-        const leaderboard = activityLogs.map(log => {
-            const recentEntries = log.timeEntries.filter(entry => {
-                return new Date(entry.endTime) > twentyFourHoursAgo;
-            });
+
+        // Aggregate entries by sessionKey
+        const sessionMap = new Map();
+
+        activityLogs.forEach(log => {
+            if (!sessionMap.has(log.sessionKey)) {
+                sessionMap.set(log.sessionKey, []);
+            }
+            sessionMap.get(log.sessionKey).push(...log.timeEntries);
+        });
+
+        // Process leaderboard data
+        const leaderboard = Array.from(sessionMap.entries()).map(([sessionKey, timeEntries]) => {
+            const recentEntries = timeEntries.filter(entry => new Date(entry.endTime) > twentyFourHoursAgo);
 
             const languageDurations = {};
             recentEntries.forEach(entry => {
@@ -54,7 +64,7 @@ const getLeaderboard = async (req, res) => {
             });
 
             return {
-                sessionKey: log.sessionKey,
+                sessionKey,
                 languages: Object.entries(languageDurations).map(([language, duration]) => ({
                     language,
                     minutes: (duration / 60000).toFixed(2) // convert to minutes
@@ -62,7 +72,7 @@ const getLeaderboard = async (req, res) => {
             };
         });
 
-        res.status(200).json({message:"Data retrieved successfully", leaderboard });
+        res.status(200).json({ message: "Data retrieved successfully", leaderboard });
     } catch (error) {
         res.status(500).json({ message: "Server error", error: error.message });
     }
