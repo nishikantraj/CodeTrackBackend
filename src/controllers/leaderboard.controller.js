@@ -4,6 +4,9 @@ const User = require("../models/User");
 
 const leaderboardCreate = async(req,res)=>{
     const {language, sessionKey,startTime, endTime, duration} = req.body;
+    if((duration / 1000) > 180){
+        return res.status(400).json({message:"Duration is too long. Maximum duration is 3 minutes."});
+    }
     if (!language || !sessionKey || !startTime || !endTime || !duration) {
         return res.status(400).json({ message: "Language, sessionKey, startTime, endTime, and duration are required." });
     }
