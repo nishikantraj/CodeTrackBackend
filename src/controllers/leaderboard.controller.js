@@ -55,7 +55,7 @@ const getLeaderboard = async (req, res) => {
         });
 
         // Process leaderboard data
-        const leaderboard = Array.from(sessionMap.entries()).map(([sessionKey, timeEntries]) => {
+        const leaderboard = await Promise.all(Array.from(sessionMap.entries()).map(async ([sessionKey, timeEntries]) => {
             const recentEntries = timeEntries.filter(entry => new Date(entry.endTime) > twentyFourHoursAgo);
 
             const languageDurations = {};
@@ -65,15 +65,17 @@ const getLeaderboard = async (req, res) => {
                 }
                 languageDurations[entry.language] += entry.duration;
             });
-
+            const user = await User.findOne({sessionKey});
+            
             return {
+                name: user.name,
                 sessionKey,
                 languages: Object.entries(languageDurations).map(([language, duration]) => ({
                     language,
                     minutes: (duration / 60000).toFixed(2) // convert to minutes
                 }))
             };
-        });
+        }));
 
         res.status(200).json({ message: "Data retrieved successfully", leaderboard });
     } catch (error) {
