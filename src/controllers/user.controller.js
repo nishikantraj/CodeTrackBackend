@@ -56,7 +56,7 @@ const loginUser = async (req,res)=>{
             {expiresIn:"24h"}
         )
         res.cookie("token",token);
-        res.status(200).json({message:"Login Successful", token})
+        res.status(200).json({message:"Login Successful", token, user})
     } catch (error) {
         res.status(500).json({message:"Server error", error: error.message})   
     }
