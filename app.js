@@ -5,9 +5,22 @@ const cors = require("cors")
 const app = express()
 const cookieParser = require("cookie-parser");
 const { getLeaderboard } = require("./src/controllers/leaderboard.controller");
+
+const allowedOrigins = [
+    "https://code-track-frontend.vercel.app/",
+    "http://localhost:5173",
+  ];
 // MiddleWare
 app.use(express.json())
-app.use(cors())
+
+
+app.use(
+    cors({
+      origin: allowedOrigins,
+      credentials: true, 
+    })
+);
+
 app.use(cookieParser())
 
 app.use("/api/user", require("./src/routes/user.routes"));
