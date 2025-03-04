@@ -69,7 +69,6 @@ const getLeaderboard = async (req, res) => {
             
             return {
                 name: user.name,
-                sessionKey,
                 languages: Object.entries(languageDurations).map(([language, duration]) => ({
                     language,
                     minutes: (duration / 60000).toFixed(2) // convert to minutes
