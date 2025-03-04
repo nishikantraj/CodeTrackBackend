@@ -6,20 +6,24 @@ const app = express()
 const cookieParser = require("cookie-parser");
 const { getLeaderboard } = require("./src/controllers/leaderboard.controller");
 
-const allowedOrigins = [
-    "https://www.codechamp.tech/",
-    "http://localhost:5173",
-  ];
+
 // MiddleWare
 app.use(express.json())
 
 
-app.use(
-    cors({
-      origin: allowedOrigins,
-      credentials: true, 
-    })
-);
+const allowedOrigins = ["https://www.codechamp.tech", "https://codechamp.tech","http://localhost:5173"];
+app.use(cors({
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
+    methods: "GET,POST,PUT,DELETE",
+    credentials: true,
+}));
+
 
 app.use(cookieParser())
 
