@@ -7,7 +7,7 @@ const cookieParser = require("cookie-parser");
 const { getLeaderboard } = require("./src/controllers/leaderboard.controller");
 
 const allowedOrigins = [
-    "https://code-track-frontend.vercel.app",
+    "https://www.codechamp.tech/",
     "http://localhost:5173",
   ];
 // MiddleWare
