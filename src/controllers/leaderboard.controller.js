@@ -191,23 +191,23 @@ const getLeaderboard = async (req, res) => {
 
 
 // Atuo cleanup logic
-const cleanUpOldEntries = async()=>{
-    const now = new Date();
-    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    
-    try {
-        const activityLogs = await ActivityLog.find({});
-        for(log of activityLogs){
-            //Filter out time entries older than 24-hr
-            log.timeEntries = log.timeEntries.filter(entry => new Date(entry.endTime) > twentyFourHoursAgo)
-            await log.save();
-        }
-        console.log("Old entries cleaned up successfully.");
-    } catch (error) {
-        console.error("Error during cleanup:", error);        
-    }
-}
+const cleanUpOldEntries = async () => {
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-cron.schedule("* * * * *", cleanUpOldEntries);
+    try {
+        const result = await ActivityLog.updateMany(
+            { "timeEntries.endTime": { $lte: twentyFourHoursAgo } }, // Only target relevant logs
+            { $pull: { timeEntries: { endTime: { $lte: twentyFourHoursAgo } } } } // Remove outdated entries
+        );
+
+        console.log(`Cleanup complete. Modified ${result.modifiedCount} documents.`);
+    } catch (error) {
+        console.error("Error during cleanup:", error);
+    }
+};
+
+// Schedule the cleanup every minute
+cron.schedule("*/5 * * * *", cleanUpOldEntries);
+
 
 module.exports = {leaderboardCreate, getLeaderboard};
