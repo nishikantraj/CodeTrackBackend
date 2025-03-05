@@ -35,41 +35,93 @@ const User = require("../models/User");
 //     }
 // }
 
+// const leaderboardCreate = async (req, res) => {
+//     const { language, sessionKey, startTime, endTime, duration } = req.body;
+
+//     // Validate duration (should not exceed 15 minutes)
+//     if ((duration / 1000) > 900) {
+//         return res.status(400).json({ message: "Duration is too long. Maximum duration is 15 minutes." });
+//     }
+
+//     // Check for required fields
+//     if (!language || !sessionKey || !startTime || !endTime || !duration) {
+//         return res.status(400).json({ message: "Language, sessionKey, startTime, endTime, and duration are required." });
+//     }
+
+//     try {
+//         // Validate the sessionKey against the User collection
+//         const user = await User.findOne({ sessionKey });
+
+//         if (!user) {
+//             return res.status(401).json({ message: "Invalid session key. User does not exist." });
+//         }
+
+//         let activityLog = await ActivityLog.findOne({ sessionKey });
+
+//         if (!activityLog) {
+//             // If no activity log exists, create a new one
+//             activityLog = new ActivityLog({
+//                 sessionKey,
+//                 timeEntries: [],
+//             });
+//         } else {
+//             // Check if the exact same entry already exists
+//             const isDuplicate = activityLog.timeEntries.some(entry =>
+//                 entry.language === language &&
+//                 entry.startTime === startTime &&
+//                 entry.endTime === endTime &&
+//                 entry.duration === duration
+//             );
+
+//             if (isDuplicate) {
+//                 return res.status(409).json({ message: "Duplicate entry detected. Entry not added." });
+//             }
+//         }
+
+//         // Add the new entry
+//         activityLog.timeEntries.push({ language, startTime, endTime, duration });
+        
+//         // Save the updated activity log
+//         await activityLog.save();
+
+//         res.status(200).json({ message: "Activity log updated successfully.", activityLog });
+//     } catch (error) {
+//         res.status(500).json({ message: "Server error", error: error.message });
+//     }
+// };
+
 const leaderboardCreate = async (req, res) => {
     const { language, sessionKey, startTime, endTime, duration } = req.body;
 
-    // Validate duration (should not exceed 15 minutes)
-    if ((duration / 1000) > 900) {
+    if (duration / 1000 > 900) {
         return res.status(400).json({ message: "Duration is too long. Maximum duration is 15 minutes." });
     }
 
-    // Check for required fields
     if (!language || !sessionKey || !startTime || !endTime || !duration) {
         return res.status(400).json({ message: "Language, sessionKey, startTime, endTime, and duration are required." });
     }
 
-    try {
-        // Validate the sessionKey against the User collection
-        const user = await User.findOne({ sessionKey });
+    if (new Date(startTime) >= new Date(endTime)) {
+        return res.status(400).json({ message: "Invalid time range. endTime must be greater than startTime." });
+    }
 
+    try {
+        const user = await User.findOne({ sessionKey });
         if (!user) {
             return res.status(401).json({ message: "Invalid session key. User does not exist." });
         }
 
+        // Find the activity log first to avoid duplicate DB queries
         let activityLog = await ActivityLog.findOne({ sessionKey });
 
         if (!activityLog) {
-            // If no activity log exists, create a new one
-            activityLog = new ActivityLog({
-                sessionKey,
-                timeEntries: [],
-            });
+            activityLog = new ActivityLog({ sessionKey, timeEntries: [] });
         } else {
-            // Check if the exact same entry already exists
+            // Efficient in-memory duplicate check
             const isDuplicate = activityLog.timeEntries.some(entry =>
                 entry.language === language &&
-                entry.startTime === startTime &&
-                entry.endTime === endTime &&
+                new Date(entry.startTime).getTime() === new Date(startTime).getTime() &&
+                new Date(entry.endTime).getTime() === new Date(endTime).getTime() &&
                 entry.duration === duration
             );
 
@@ -80,7 +132,7 @@ const leaderboardCreate = async (req, res) => {
 
         // Add the new entry
         activityLog.timeEntries.push({ language, startTime, endTime, duration });
-        
+
         // Save the updated activity log
         await activityLog.save();
 
@@ -89,7 +141,6 @@ const leaderboardCreate = async (req, res) => {
         res.status(500).json({ message: "Server error", error: error.message });
     }
 };
-
 
 // Get leaderboard for last 24 hour
 const getLeaderboard = async (req, res) => {
