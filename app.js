@@ -11,7 +11,7 @@ const { getLeaderboard } = require("./src/controllers/leaderboard.controller");
 app.use(express.json())
 
 
-const allowedOrigins = ["https://www.codechamp.tech", "https://codechamp.tech","http://localhost:5173"];
+const allowedOrigins = ["https://code-champ-nishi.vercel.app","https://www.codechamp.tech", "https://codechamp.tech","http://localhost:5173"];
 app.use(cors({
     origin: function (origin, callback) {
         if (!origin || allowedOrigins.includes(origin)) {
