@@ -11,19 +11,29 @@ const { getLeaderboard } = require("./src/controllers/leaderboard.controller");
 app.use(express.json())
 
 
-const allowedOrigins = ["https://code-champ-nishi.vercel.app","https://www.codechamp.tech", "https://codechamp.tech","http://localhost:5173"];
+// const allowedOrigins = ["https://code-champ-nishi.vercel.app","https://www.codechamp.tech", "https://codechamp.tech","http://localhost:5173"];
+// app.use(cors({
+//     origin: function (origin, callback) {
+//         if (!origin || allowedOrigins.includes(origin)) {
+//             callback(null, true);
+//         } else {
+//             callback(new Error("Not allowed by CORS"));
+//         }
+//     },
+//     methods: "GET,POST,PUT,DELETE",
+//     credentials: true,
+// }));
 app.use(cors({
-    origin: function (origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error("Not allowed by CORS"));
-        }
-    },
-    methods: "GET,POST,PUT,DELETE",
-    credentials: true,
+  origin: [
+    "https://code-champ-nishi.vercel.app",
+    "https://codechamp.tech",
+    "https://www.codechamp.tech",
+    "http://localhost:5173"
+  ],
+  credentials: true
 }));
 
+app.options("*", cors());
 
 app.use(cookieParser())
 
