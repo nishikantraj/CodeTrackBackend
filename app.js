@@ -24,16 +24,9 @@ app.use(express.json())
 //     credentials: true,
 // }));
 app.use(cors({
-  origin: [
-    "https://code-champ-nishi.vercel.app",
-    "https://codechamp.tech",
-    "https://www.codechamp.tech",
-    "http://localhost:5173"
-  ],
+  origin: true,
   credentials: true
 }));
-
-app.options("*", cors());
 
 app.use(cookieParser())
 
